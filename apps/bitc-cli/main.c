@@ -45,6 +45,9 @@
 #define LGPFX "BITC:"
 
 
+#define DEF_LINUX_TOR_PORT 9050
+#define DEF_WIN_TOR_PORT 9150
+
 enum btc_req_type {
    BTC_REQ_STOP,
    BTC_REQ_TX,
@@ -1055,10 +1058,11 @@ bitc_init(struct secure_area *passphrase,
       btc->socks5_proxy = config_getstring(btc->config, "localhost", "socks5.hostname");
       btc->socks5_port  = config_getint64(btc->config,
 #ifdef linux
-                                          9050,
+                                          DEF_LINUX_TOR_PORT,
 #else
-                                          9150,
+                                          DEF_WIN_TOR_PORT,
 #endif
+                                          
                                           "socks5.port");
       Log(LGPFX" Using SOCKS5 proxy %s:%u.\n",
           btc->socks5_proxy, btc->socks5_port);
@@ -1160,7 +1164,8 @@ int main(int argc, char *argv[])
    char *errStr = NULL;
    char *configPath = NULL;
    char *testStr = NULL;
-   int maxPeers = 5;
+   int maxPeers = 25;
+   int poolworker_num = 10;
    bool updateAndExit = 0;
    bool zap = 0;
    bool withui = 1;
@@ -1326,7 +1331,7 @@ int main(int argc, char *argv[])
    }
 
    btc->lock = mutex_alloc();
-   btc->pw = poolworker_create(10);
+   btc->pw = poolworker_create(poolworker_num);
    ipinfo_init();
    bitc_openssl_init();
    curl_global_init(CURL_GLOBAL_DEFAULT);
